@@ -1,3 +1,5 @@
+import concurrent.futures
+import os
 import re
 import sys
 import threading
@@ -11,7 +13,7 @@ from PySide6.QtGui import (QFont, QIcon,
                            QImage, QPixmap, QStandardItem, QStandardItemModel)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QFrame,
                                QLabel, QListView, QPushButton, QSpinBox, QMainWindow, QAbstractItemView)
-
+_gg = [None]
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -114,26 +116,25 @@ class Ui_EarthQuake(object):
         self.label.setStyleSheet("QLabel{background: #1a1a1a;color: Orange;}")
         self.label.setAlignment(Qt.AlignCenter)
         threading.Thread(target=self.timeSet, daemon=True).start()
-        threading.Thread(target=self.One_Eq, daemon=True).start()
-        threading.Thread(target=self.Hist_Main, daemon=True).start()
+        threading.Thread(target=self.One_Eq).start()
         self.retranslateUi(EarthQuake)
 
         QMetaObject.connectSlotsByName(EarthQuake)
 
     def AutoRefreshButtons(self):
-        if self.AutoRefresh.checkState() == Qt.Checked:
-            threading.Thread(target=self.AutoRefresher, daemon=True).start()
+        if not self.AutoRefresh.checkState() == Qt.Checked:
+            [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(6)]
+            threading.Thread(target=self.One_Eq).start()
         else:
-            threading.Thread(target=self.One_Eq, daemon=True).start()
-            threading.Thread(target=self.Hist_Main, daemon=True).start()
+            threading.Thread(target=self.AutoRefresher, daemon=True).start()
 
     def AutoRefresher(self):
         seconds = self.RefreshRate.value() * 60
         while True:
             if self.AutoRefresh.checkState() == Qt.Unchecked:
                 break
+            [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(6)]
             threading.Thread(target=self.One_Eq, daemon=True).start()
-            threading.Thread(target=self.Hist_Main, daemon=True).start()
             time.sleep(seconds)
 
     def timeSet(self):
@@ -142,7 +143,7 @@ class Ui_EarthQuake(object):
             time.sleep(0.98)
 
     def One_tg(self, source, tag):
-        _hd = source.read().decode()
+        _hd = source.decode()
         _ht = tag.split('.')[0]
         _tn = '.'.join(tag.split('.')[1:])
         _tgi = ''.join(_hd.split('<{} class="{}">'.format(_ht, _tn))[1:])
@@ -182,8 +183,9 @@ class Ui_EarthQuake(object):
     def One_Eq(self):
         _u = "https://typhoon.yahoo.co.jp/weather/earthquake/"
         _ua = 'Mozilla/5.0 (Linux; U; Android 8.0; en-la; Nexus Build/JPG991) AppleWebKit/511.2 (KHTML, like Gecko) Version/5.0 Mobile/11S444 YJApp-ANDROID jp.co.yahoo.android.yjtop/4.01.1.5'
-        _d = urllib.request.urlopen(urllib.request.Request(_u, headers={'User-Agent': _ua}))
-        _t = self.One_tg(_d, 'div.eqDetail')
+        _d = urllib.request.urlopen(urllib.request.Request(_u, headers={'User-Agent': _ua}), timeout=1000)
+        _gg[0] = _d.read()
+        _t = self.One_tg(_gg[0], 'div.eqDetail')
 
         _dq = str(_t)
         if '<td>1</td>' in _dq:
@@ -205,6 +207,10 @@ class Ui_EarthQuake(object):
         if '<td>7</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 0, 255);}')
         self.EqOneView.setText('\n\n'.join(self.One_r(''.join(re.findall('<.+>(.+)<.+>', _t)))))
+        self.clearList()
+
+    def clearList(self):
+        threading.Thread(target=self.Hist_Main, daemon=True).start()
 
     def colorIcon(self, color):
         if color == 0: # Unknow
@@ -228,8 +234,7 @@ class Ui_EarthQuake(object):
         if color == 70: # 7
             return QPixmap(QSize(91, 91)).fromImage(QImage.fromData(QByteArray.fromBase64(b'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')))
 
-    def Hist_tg(self, source, _tag1, _tag2, _tag3):
-        _hd = source.read().decode()
+    def Hist_tg(self, _hd, _tag1, _tag2, _tag3):
         _ht1 = _tag1.split('.')[0]
         _tn1 = '.'.join(_tag1.split('.')[1:])
         _ht2 = _tag2.split('.')[0]
@@ -247,11 +252,7 @@ class Ui_EarthQuake(object):
         return _tn1, _tn2, _tn3
 
     def Hist_Main(self):
-        [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(6)]
-        _u = "https://typhoon.yahoo.co.jp/weather/earthquake/"
-        _ua = 'Mozilla/5.0 (Linux; U; Android 8.0; en-la; Nexus Build/JPG991) AppleWebKit/511.2 (KHTML, like Gecko) Version/5.0 Mobile/11S444 YJApp-ANDROID jp.co.yahoo.android.yjtop/4.01.1.5'
-        _g = urllib.request.urlopen(urllib.request.Request(_u, headers={'User-Agent': _ua}), timeout=1000)
-        _ht = self.Hist_tg(_g, 'dd.subText', 'dt.title', 'dd.eqScale')
+        _ht = self.Hist_tg(_gg[0].decode(), 'dd.subText', 'dt.title', 'dd.eqScale')
         _es = _ht[0]
         _et = _ht[1]
         _esc = _ht[2]
@@ -304,4 +305,4 @@ def main():
     App.exec()
 
 if __name__ == '__main__':
-    main()
+    concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999999999).submit(main).result()
