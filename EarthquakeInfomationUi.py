@@ -305,4 +305,4 @@ def main():
     App.exec()
 
 if __name__ == '__main__':
-    concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999999999).submit(main).result()
+    main()
