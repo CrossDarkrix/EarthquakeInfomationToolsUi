@@ -141,13 +141,13 @@ class Ui_EarthQuake(object):
             time.sleep(0.98)
 
     def One_tg(self, source, tag):
-        _hd = source.read().decode()  # htmlの読み込み
-        _ht = tag.split('.')[0]  # 読み込むタグの選択
-        _tn = '.'.join(tag.split('.')[1:])  # 読み込むクラスの選択
-        _tgi = ''.join(_hd.split('<{} class="{}">'.format(_ht, _tn))[1:])  # 読み込んだタグとそのクラスで分割
-        _tgs = _tgi.split('</{}>'.format(_ht))[0].replace('  ', '').split('<{} '.format(_ht))[0]  # 読み込んだタグの終わりで分割し、整形
-        _tga = re.sub('(\n\n)', '', _tgs)  # 改行を一括削除
-        _tgt = re.sub('<!.+\n', '', _tga).replace('><', '>\n<')  # 整形
+        _hd = source.read().decode()
+        _ht = tag.split('.')[0]
+        _tn = '.'.join(tag.split('.')[1:])
+        _tgi = ''.join(_hd.split('<{} class="{}">'.format(_ht, _tn))[1:])
+        _tgs = _tgi.split('</{}>'.format(_ht))[0].replace('  ', '').split('<{} '.format(_ht))[0]
+        _tga = re.sub('(\n\n)', '', _tgs)
+        _tgt = re.sub('<!.+\n', '', _tga).replace('><', '>\n<')
         return _tgt
 
     def One_r(self, d):
@@ -166,44 +166,44 @@ class Ui_EarthQuake(object):
         _rd5 = '\n・緯度/経度: '
         _rd6 = '\n・津波情報: '
         _sw = '。'
-        _eq = re.sub('([ ])', '', d)  # 不要なスペースを削除
-        _eq1 = re.sub('(\n\n)', '', _eq)  # 改行を一括削除
-        _eq2 = _eq1.replace(_r0, _rd0)  # 発生時刻を「・発生時刻: 」へ置き換え
-        _eq3 = _eq2.replace(_r1, _rd1)  # 震源地を改行してから「・震源地: 」へ置き換え
-        _eq4 = _eq3.replace(_r2, _rd2)  # 最大震度を改行してから「・最大震度: 」へ置き換え
-        _eq5 = _eq4.replace(_r3, _rd3)  # マグニチュードを改行してから「地震の規模: M」へ置き換え
-        _eq6 = _eq5.replace(_r4, _rd4)  # 深さを改行してから「・深さ: 」へ置き換え
-        _eq7 = _eq6.replace(_r5, _rd5)  # 緯度/経度を改行してから「・緯度/経度: 」へ置き換え
-        _eq8 = _eq7.replace(_r6, _rd6).split(_sw)[0]  # 情報を改行してから「・津波情報: 」へ置き換えて「。」で分割して整形
+        _eq = re.sub('([ ])', '', d)
+        _eq1 = re.sub('(\n\n)', '', _eq)
+        _eq2 = _eq1.replace(_r0, _rd0)
+        _eq3 = _eq2.replace(_r1, _rd1)
+        _eq4 = _eq3.replace(_r2, _rd2)
+        _eq5 = _eq4.replace(_r3, _rd3)
+        _eq6 = _eq5.replace(_r4, _rd4)
+        _eq7 = _eq6.replace(_r5, _rd5)
+        _eq8 = _eq7.replace(_r6, _rd6).split(_sw)[0]
 
-        return _eq8.split('\n')  # 改行で分割
+        return _eq8.split('\n')
 
     def One_Eq(self):
-        _u = "https://typhoon.yahoo.co.jp/weather/earthquake/"  # YahooJapanの地震情報
-        _ua = 'Mozilla/5.0 (Linux; U; Android 8.0; en-la; Nexus Build/JPG991) AppleWebKit/511.2 (KHTML, like Gecko) Version/5.0 Mobile/11S444 YJApp-ANDROID jp.co.yahoo.android.yjtop/4.01.1.5'  # Android端末のYahooアプリに偽装
-        _d = urllib.request.urlopen(urllib.request.Request(_u, headers={'User-Agent': _ua}))  # 定義したユーザーエージェントに従いURLへアクセス
-        _t = self.One_tg(_d, 'div.eqDetail')  # htmlを受け渡し、divタグの「eqDetail」を選択
+        _u = "https://typhoon.yahoo.co.jp/weather/earthquake/"
+        _ua = 'Mozilla/5.0 (Linux; U; Android 8.0; en-la; Nexus Build/JPG991) AppleWebKit/511.2 (KHTML, like Gecko) Version/5.0 Mobile/11S444 YJApp-ANDROID jp.co.yahoo.android.yjtop/4.01.1.5'
+        _d = urllib.request.urlopen(urllib.request.Request(_u, headers={'User-Agent': _ua}))
+        _t = self.One_tg(_d, 'div.eqDetail')
 
         _dq = str(_t)
-        if '<td>1</td>' in _dq:  # 震度１なら黒く表示
+        if '<td>1</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 255, 255);}')
-        if '<td>2</td>' in _dq:  # 震度２なら青く表示
+        if '<td>2</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(0, 10, 255);}')
-        if '<td>3</td>' in _dq:  # 震度３なら緑に表示
+        if '<td>3</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(0, 102, 0);}')
-        if '<td>4</td>' in _dq:  # 震度４なら黄色く表示
+        if '<td>4</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 10, 0);}')
-        if '<td>5弱</td>' in _dq:  # 震度５弱なら赤く表示
+        if '<td>5弱</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 1, 0);}')
-        if '<td>5強</td>' in _dq:  # 震度５強なら赤く表示
+        if '<td>5強</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(100, 80, 0);}')
-        if '<td>6弱</td>' in _dq:  # 震度６弱なら赤く表示
+        if '<td>6弱</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 1 , 255);}')
-        if '<td>6強</td>' in _dq:  # 震度６強なら赤く表示
+        if '<td>6強</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 0, 0);}')
-        if '<td>7</td>' in _dq:  # 震度７なら紫色に表示
+        if '<td>7</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 0, 255);}')
-        self.EqOneView.setText('\n\n'.join(self.One_r(''.join(re.findall('<.+>(.+)<.+>', _t)))))  # タグ内の文字列だけを抽出
+        self.EqOneView.setText('\n\n'.join(self.One_r(''.join(re.findall('<.+>(.+)<.+>', _t)))))
 
     def colorIcon(self, color):
         if color == 0: # Unknow
@@ -228,53 +228,53 @@ class Ui_EarthQuake(object):
             return QPixmap(QSize(91, 91)).fromImage(QImage.fromData(QByteArray.fromBase64(b'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')))
 
     def Hist_tg(self, source, _tag1, _tag2, _tag3):
-        _hd = source.read().decode()  # htmlの読み込み
-        _ht1 = _tag1.split('.')[0]  # 読み込むタグの選択
-        _tn1 = '.'.join(_tag1.split('.')[1:])  # 読み込むクラスの選択
-        _ht2 = _tag2.split('.')[0]  # 読み込むタグの選択
-        _tn2 = '.'.join(_tag2.split('.')[1:])  # 読み込むクラスの選択
-        _ht3 = _tag3.split('.')[0]  # 読み込むタグの選択
-        _tn3 = '.'.join(_tag3.split('.')[1:])  # 読み込むクラスの選択
-        _tn1 = re.findall('<{} class="{}">(.+)'.format(_ht1, _tn1, _ht1), _hd)  # 読み込んだタグとそのクラスを検索しリストにする
-        _tn2 = [_t for _t in re.findall('<{} class="{}">(.+)</{}>'.format(_ht2, _tn2, _ht2), _hd) if '震源地：' in _t]  # 読み込んだタグとそのクラスを検索し条件に合った場合にのみリストにする
-        _ta = ''.join(_hd.split('<{} class="{}">'.format(_ht3, _tn3))[1:]).split('</div>')[0]  # 読み込んだタグとそのクラスで分割し、さらにdivの終わりのタグで分割
-        _tb = [_y.replace('<em>', '').replace('</em>', '') for _y in re.findall('-->(.+)<', _ta)]  # 条件で検索し、emタグ内の文字列を抽出
-        _tt = [re.sub('<em (.+)>', '', _y) for _y in _tb]  # 条件で検索し、emタグを整形
-        _tc = '#'.join(_tt).replace('#最', '),最')  # 「最大震度」の「最」の先頭に＃をつけてから「),最」に整形
-        _te = ''.join(_tc.split('#')).replace('M', ' (M').split(',')  # ＃で分割し、Mを「 (M」にして「,」で分割
-        _tn3 = [_yt.replace(_yt[-1], _yt[-1] + ')').replace(').', '.') if not ')' in _yt else _yt for _yt in _te]  # 後ろに「)」が付いていない文字列に「)」を付ける
+        _hd = source.read().decode()
+        _ht1 = _tag1.split('.')[0]
+        _tn1 = '.'.join(_tag1.split('.')[1:])
+        _ht2 = _tag2.split('.')[0]
+        _tn2 = '.'.join(_tag2.split('.')[1:])
+        _ht3 = _tag3.split('.')[0]
+        _tn3 = '.'.join(_tag3.split('.')[1:])
+        _tn1 = re.findall('<{} class="{}">(.+)'.format(_ht1, _tn1, _ht1), _hd)
+        _tn2 = [_t for _t in re.findall('<{} class="{}">(.+)</{}>'.format(_ht2, _tn2, _ht2), _hd) if '震源地：' in _t]
+        _ta = ''.join(_hd.split('<{} class="{}">'.format(_ht3, _tn3))[1:]).split('</div>')[0]
+        _tb = [_y.replace('<em>', '').replace('</em>', '') for _y in re.findall('-->(.+)<', _ta)]
+        _tt = [re.sub('<em (.+)>', '', _y) for _y in _tb]
+        _tc = '#'.join(_tt).replace('#最', '),最')
+        _te = ''.join(_tc.split('#')).replace('M', ' (M').split(',')
+        _tn3 = [_yt.replace(_yt[-1], _yt[-1] + ')').replace(').', '.') if not ')' in _yt else _yt for _yt in _te]
         return _tn1, _tn2, _tn3
 
     def Hist_Main(self):
         [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(6)]
-        _u = "https://typhoon.yahoo.co.jp/weather/earthquake/"  # YahooJapanの地震情報
-        _ua = 'Mozilla/5.0 (Linux; U; Android 8.0; en-la; Nexus Build/JPG991) AppleWebKit/511.2 (KHTML, like Gecko) Version/5.0 Mobile/11S444 YJApp-ANDROID jp.co.yahoo.android.yjtop/4.01.1.5'  # Android端末のYahooアプリに偽装
-        _g = urllib.request.urlopen(urllib.request.Request(_u, headers={'User-Agent': _ua}), timeout=1000)  # 定義したユーザーエージェントに従いURLへアクセス(念の為１０００秒待機)
-        _ht = self.Hist_tg(_g, 'dd.subText', 'dt.title', 'dd.eqScale')  # htmlの受け渡しとddタグの「subText」、dtタグの「title」、ddタグの「eqScale」を選択
-        _es = _ht[0]  # ddタグのクラス名「subText」の中身をリスト形式で出力
-        _et = _ht[1]  # dtタグのクラス名「title」の中身をリスト形式で出力
-        _esc = _ht[2]  # ddタグのクラス名「eqScale」の中身をリスト形式で出力
+        _u = "https://typhoon.yahoo.co.jp/weather/earthquake/"
+        _ua = 'Mozilla/5.0 (Linux; U; Android 8.0; en-la; Nexus Build/JPG991) AppleWebKit/511.2 (KHTML, like Gecko) Version/5.0 Mobile/11S444 YJApp-ANDROID jp.co.yahoo.android.yjtop/4.01.1.5'
+        _g = urllib.request.urlopen(urllib.request.Request(_u, headers={'User-Agent': _ua}), timeout=1000)
+        _ht = self.Hist_tg(_g, 'dd.subText', 'dt.title', 'dd.eqScale')
+        _es = _ht[0]
+        _et = _ht[1]
+        _esc = _ht[2]
 
         for _p in range(10):
-            if _esc[_p].split(' ')[1].split(')')[0] == '1':  # 震度１なら黒く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '1':
                 _c = self.colorIcon(10)
-            if _esc[_p].split(' ')[1].split(')')[0] == '2':  # 震度２なら青く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '2':
                 _c = self.colorIcon(20)
-            if _esc[_p].split(' ')[1].split(')')[0] == '3':  # 震度３なら緑に表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '3':
                 _c = self.colorIcon(30)
-            if _esc[_p].split(' ')[1].split(')')[0] == '4':  # 震度４なら黄色く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '4':
                 _c = self.colorIcon(40)
-            if _esc[_p].split(' ')[1].split(')')[0] == '5弱':  # 震度５弱なら赤く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '5弱':
                 _c = self.colorIcon(50)
-            if _esc[_p].split(' ')[1].split(')')[0] == '5強':  # 震度５強なら赤く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '5強':
                 _c = self.colorIcon(51)
-            if _esc[_p].split(' ')[1].split(')')[0] == '6弱':  # 震度６弱なら赤く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '6弱':
                 _c = self.colorIcon(60)
-            if _esc[_p].split(' ')[1].split(')')[0] == '6強':  # 震度６強なら赤く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '6強':
                 _c = self.colorIcon(61)
-            if _esc[_p].split(' ')[1].split(')')[0] == '7':  # 震度７なら紫色に表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '7':
                 _c = self.colorIcon(70)
-            if _esc[_p].split(' ')[1].split(')')[0] == '---':  # 震度不明なら黒く表示
+            if _esc[_p].split(' ')[1].split(')')[0] == '---':
                 _esc[_p] = _esc[_p].replace('---', '不明')
                 _c = self.colorIcon(0)
             _esc[_p] = _esc[_p].split(' ')[0] + ' ' + _esc[_p].split(' ')[1] + ' ' + ' '.join(_esc[_p].split(' ')[2:])
