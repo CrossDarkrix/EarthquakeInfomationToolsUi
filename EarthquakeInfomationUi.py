@@ -123,8 +123,9 @@ class Ui_EarthQuake(object):
     def AutoRefreshButtons(self):
         if self.AutoRefresh.checkState() == Qt.Checked:
             threading.Thread(target=self.AutoRefresher, daemon=True).start()
-        threading.Thread(target=self.One_Eq, daemon=True).start()
-        threading.Thread(target=self.Hist_Main, daemon=True).start()
+        else:
+            threading.Thread(target=self.One_Eq, daemon=True).start()
+            threading.Thread(target=self.Hist_Main, daemon=True).start()
 
     def AutoRefresher(self):
         seconds = self.RefreshRate.value() * 60
@@ -286,7 +287,7 @@ class Ui_EarthQuake(object):
         self.EqListView.setModel(self.EqListViewModel)
 
     def retranslateUi(self, EarthQuake):
-        EarthQuake.setWindowTitle("EarthQuakeInfomation")
+        EarthQuake.setWindowTitle("EarthquakeInfomation v1.0.1")
         self.RefreshButton.setText("更新")
         self.AutoRefresh.setText("自動更新")
         self.RefreshRateLabel.setText("更新間隔:")
