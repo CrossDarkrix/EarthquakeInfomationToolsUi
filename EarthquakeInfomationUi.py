@@ -6,12 +6,11 @@ import concurrent.futures
 import os
 import re
 import sys
-import time
 import urllib.request
 from datetime import datetime
 
 from PySide6.QtCore import (QByteArray, QMetaObject, QRect,
-                            QSize, Qt)
+                            QSize, Qt, QTimer)
 from PySide6.QtGui import (QFont, QIcon,
                            QImage, QPixmap, QStandardItem, QStandardItemModel)
 from PySide6.QtWidgets import (QAbstractSpinBox, QAbstractItemView,
@@ -123,7 +122,11 @@ class Ui_EarthQuake(object):
         self.label.setFont(font2)
         self.label.setStyleSheet("QLabel{background: #1a1a1a;color: Orange;}")
         self.label.setAlignment(Qt.AlignCenter)
-        concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.timeSet)
+        self.Times = QTimer(EarthQuake)
+        self.Times.setInterval(980)
+        self.Times.timeout.connect(self.timeSet)
+        self.Times.start()
+        self.AutoEarthqaukeRefresher = QTimer(EarthQuake)
         concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.One_Eq)
         self.retranslateUi(EarthQuake)
 
@@ -131,29 +134,27 @@ class Ui_EarthQuake(object):
 
     def AutoRefreshButtons(self):
         if not self.AutoRefresh.checkState() == Qt.Checked:
+            if self.AutoRefresh.checkState() == Qt.Unchecked:
+                self.AutoEarthqaukeRefresher.stop()
             _cc = concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.clearListView)
             _cc.result()
             concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.One_Eq)
         else:
-            concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.AutoRefresher)
-
-    def AutoRefresher(self):
-        seconds = self.RefreshRate.value() * 60
-        while True:
-            if self.AutoRefresh.checkState() == Qt.Unchecked:
-                break
-            _ac = concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.clearListView)
-            _ac.result()
-            self.One_Eq()
-            time.sleep(seconds)
+            concurrent.futures.ThreadPoolExecutor().submit(self.clearListView)
+            concurrent.futures.ThreadPoolExecutor().submit(self.One_Eq)
+            self.AutoEarthqaukeRefresher.setInterval((int(self.RefreshRate.value()) * 59) * 1000)
+            self.AutoEarthqaukeRefresher.timeout.connect(self.AutoRefreshing)
+            self.AutoEarthqaukeRefresher.start()
 
     def clearListView(self):
         [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(7)]
 
     def timeSet(self):
-        while True:
-            self.TimeLabel.setText(datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
-            time.sleep(0.98)
+        self.TimeLabel.setText(datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+
+    def AutoRefreshing(self):
+        concurrent.futures.ThreadPoolExecutor().submit(self.clearListView)
+        concurrent.futures.ThreadPoolExecutor().submit(self.One_Eq)
 
     def One_tg(self, source, tag):
         _hd = source.decode()
@@ -298,7 +299,7 @@ class Ui_EarthQuake(object):
         self.EqListView.setModel(self.EqListViewModel)
 
     def retranslateUi(self, EarthQuake):
-        EarthQuake.setWindowTitle("EarthquakeInfomation v1.0.2")
+        EarthQuake.setWindowTitle("EarthquakeInfomation v1.0.3")
         self.RefreshButton.setText("更新")
         self.AutoRefresh.setText("自動更新")
         self.RefreshRateLabel.setText("更新間隔:")
