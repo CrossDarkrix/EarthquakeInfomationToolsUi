@@ -1,8 +1,11 @@
+'''
+Author: DarkRix
+'''
+
 import concurrent.futures
 import os
 import re
 import sys
-import threading
 import time
 import urllib.request
 from datetime import datetime
@@ -11,8 +14,10 @@ from PySide6.QtCore import (QByteArray, QMetaObject, QRect,
                             QSize, Qt)
 from PySide6.QtGui import (QFont, QIcon,
                            QImage, QPixmap, QStandardItem, QStandardItemModel)
-from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QCheckBox, QFrame,
-                               QLabel, QListView, QPushButton, QSpinBox, QMainWindow, QAbstractItemView)
+from PySide6.QtWidgets import (QAbstractSpinBox, QAbstractItemView,
+                               QAbstractScrollArea, QApplication, QCheckBox, QFrame,
+                               QLabel, QListView, QPushButton, QSpinBox, QMainWindow)
+
 _gg = [None]
 
 class MainWindow(QMainWindow):
@@ -32,10 +37,10 @@ class Ui_EarthQuake(object):
     def setupUi(self, EarthQuake):
         if not EarthQuake.objectName():
             EarthQuake.setObjectName("EarthQuake")
-        EarthQuake.resize(1115, 715)
+        EarthQuake.resize(1115, 660)
         font = QFont()
         font.setFamilies(["Arial"])
-        font.setPointSize(15)
+        font.setPointSize(16)
         EarthQuake.setFont(font)
         EarthQuake.setStyleSheet("QWidget{color: Red;background: #2e2e2d;}")
         self.EqOneView = QLabel(EarthQuake)
@@ -48,16 +53,19 @@ class Ui_EarthQuake(object):
         self.EqOneView.setIndent(-1)
         self.EqListView = EqListV(EarthQuake)
         self.EqListView.setObjectName("EqListView")
-        self.EqListView.setGeometry(QRect(540, 0, 581, 721))
+        self.EqListView.setGeometry(QRect(540, 0, 581, 661))
         self.EqListView.setFont(font)
         self.EqListView.setStyleSheet("QListView{background: #1a1a1a; color: White;}")
         self.EqListView.setFrameShape(QFrame.Box)
         self.EqListView.setViewMode(QListView.ListMode)
+        self.EqListView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.EqListView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.EqListView.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         self.EqListView.setItemAlignment(Qt.AlignRight)
         self.EqListViewModel = QStandardItemModel(EarthQuake)
         self.RefreshButton = QPushButton(EarthQuake)
         self.RefreshButton.setObjectName("RefreshButton")
-        self.RefreshButton.setGeometry(QRect(300, 580, 201, 61))
+        self.RefreshButton.setGeometry(QRect(300, 560, 201, 61))
         self.RefreshButton.setFont(font)
         self.RefreshButton.setStyleSheet("QPushButton:checked{background: #080808;}\n"
 "QPushButton{color: Red; background: #1a1a1a;}")
@@ -66,13 +74,13 @@ class Ui_EarthQuake(object):
         self.RefreshButton.clicked.connect(self.AutoRefreshButtons)
         self.AutoRefresh = QCheckBox(EarthQuake)
         self.AutoRefresh.setObjectName("AutoRefresh")
-        self.AutoRefresh.setGeometry(QRect(20, 580, 121, 31))
+        self.AutoRefresh.setGeometry(QRect(20, 560, 121, 31))
         self.AutoRefresh.setFont(font)
         self.AutoRefresh.setLayoutDirection(Qt.LeftToRight)
         self.AutoRefresh.setStyleSheet("QCheckBox{background: #1a1a1a;}")
         self.RefreshRate = QSpinBox(EarthQuake)
         self.RefreshRate.setObjectName("RefreshRate")
-        self.RefreshRate.setGeometry(QRect(130, 630, 81, 31))
+        self.RefreshRate.setGeometry(QRect(130, 610, 81, 31))
         self.RefreshRate.setFont(font)
         self.RefreshRate.setStyleSheet("QSpinBox{background: #1a1a1a;color: Red;}")
         self.RefreshRate.setWrapping(False)
@@ -83,14 +91,14 @@ class Ui_EarthQuake(object):
         self.RefreshRate.setStepType(QAbstractSpinBox.DefaultStepType)
         self.RefreshRateLabel = QLabel(EarthQuake)
         self.RefreshRateLabel.setObjectName("RefreshRateLabel")
-        self.RefreshRateLabel.setGeometry(QRect(20, 630, 101, 31))
+        self.RefreshRateLabel.setGeometry(QRect(20, 610, 101, 31))
         self.RefreshRateLabel.setFont(font)
         self.RefreshRateLabel.setStyleSheet("QLabel{background: #1a1a1a; color:Red;}")
         self.RefreshRateLabel.setLineWidth(0)
         self.RefreshRateLabel.setAlignment(Qt.AlignCenter)
         self.RefreshRateLabel2 = QLabel(EarthQuake)
         self.RefreshRateLabel2.setObjectName("RefreshRateLabel2")
-        self.RefreshRateLabel2.setGeometry(QRect(220, 630, 21, 31))
+        self.RefreshRateLabel2.setGeometry(QRect(214, 610, 21, 31))
         self.RefreshRateLabel2.setFont(font)
         self.RefreshRateLabel2.setStyleSheet("QLabel{background: #1a1a1a; color:Red;}")
         self.RefreshRateLabel2.setLineWidth(0)
@@ -102,7 +110,7 @@ class Ui_EarthQuake(object):
         self.Logo.setStyleSheet("QLabel{background: #1a1a1a;}")
         self.TimeLabel = QLabel(EarthQuake)
         self.TimeLabel.setObjectName("TimeLabel")
-        self.TimeLabel.setGeometry(QRect(340, 695, 201, 21))
+        self.TimeLabel.setGeometry(QRect(340, 640, 201, 21))
         self.TimeLabel.setFont(font)
         self.TimeLabel.setStyleSheet("QLabel{background: #1a1a1a; color: White;}")
         self.TimeLabel.setAlignment(Qt.AlignCenter)
@@ -115,27 +123,32 @@ class Ui_EarthQuake(object):
         self.label.setFont(font2)
         self.label.setStyleSheet("QLabel{background: #1a1a1a;color: Orange;}")
         self.label.setAlignment(Qt.AlignCenter)
-        threading.Thread(target=self.timeSet, daemon=True).start()
-        threading.Thread(target=self.One_Eq).start()
+        concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.timeSet)
+        concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.One_Eq)
         self.retranslateUi(EarthQuake)
 
         QMetaObject.connectSlotsByName(EarthQuake)
 
     def AutoRefreshButtons(self):
         if not self.AutoRefresh.checkState() == Qt.Checked:
-            [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(6)]
-            threading.Thread(target=self.One_Eq).start()
+            _cc = concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.clearListView)
+            _cc.result()
+            concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.One_Eq)
         else:
-            threading.Thread(target=self.AutoRefresher, daemon=True).start()
+            concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.AutoRefresher)
 
     def AutoRefresher(self):
         seconds = self.RefreshRate.value() * 60
         while True:
             if self.AutoRefresh.checkState() == Qt.Unchecked:
                 break
-            [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(6)]
-            threading.Thread(target=self.One_Eq, daemon=True).start()
+            _ac = concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.clearListView)
+            _ac.result()
+            self.One_Eq()
             time.sleep(seconds)
+
+    def clearListView(self):
+        [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(7)]
 
     def timeSet(self):
         while True:
@@ -191,26 +204,23 @@ class Ui_EarthQuake(object):
         if '<td>1</td>' in _dq:
             self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 255, 255);}')
         if '<td>2</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(0, 10, 255);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(22, 101, 246);}')
         if '<td>3</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(0, 102, 0);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(22, 246, 102);}')
         if '<td>4</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 10, 0);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(246, 234, 22);}')
         if '<td>5弱</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 1, 0);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(246, 152, 22);}')
         if '<td>5強</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(100, 80, 0);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(246, 119, 22);}')
         if '<td>6弱</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 1 , 255);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(246, 44, 238);}')
         if '<td>6強</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 0, 0);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(246, 67, 122);}')
         if '<td>7</td>' in _dq:
-            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(255, 0, 255);}')
+            self.EqOneView.setStyleSheet('QLabel{background: #1a1a1a;color: rgb(165, 67, 246);}')
         self.EqOneView.setText('\n\n'.join(self.One_r(''.join(re.findall('<.+>(.+)<.+>', _t)))))
-        self.clearList()
-
-    def clearList(self):
-        threading.Thread(target=self.Hist_Main, daemon=True).start()
+        self.Hist_Main()
 
     def colorIcon(self, color):
         if color == 0: # Unknow
@@ -288,7 +298,7 @@ class Ui_EarthQuake(object):
         self.EqListView.setModel(self.EqListViewModel)
 
     def retranslateUi(self, EarthQuake):
-        EarthQuake.setWindowTitle("EarthquakeInfomation v1.0.1")
+        EarthQuake.setWindowTitle("EarthquakeInfomation v1.0.2")
         self.RefreshButton.setText("更新")
         self.AutoRefresh.setText("自動更新")
         self.RefreshRateLabel.setText("更新間隔:")
