@@ -123,9 +123,8 @@ class Ui_EarthQuake(object):
         self.label.setStyleSheet("QLabel{background: #1a1a1a;color: Orange;}")
         self.label.setAlignment(Qt.AlignCenter)
         self.Times = QTimer(EarthQuake)
-        self.Times.setInterval(980)
         self.Times.timeout.connect(self.timeSet)
-        self.Times.start()
+        self.Times.start(1000)
         self.AutoEarthqaukeRefresher = QTimer(EarthQuake)
         concurrent.futures.ThreadPoolExecutor(os.cpu_count()*9999).submit(self.One_Eq)
         self.retranslateUi(EarthQuake)
@@ -142,9 +141,8 @@ class Ui_EarthQuake(object):
         else:
             concurrent.futures.ThreadPoolExecutor().submit(self.clearListView)
             concurrent.futures.ThreadPoolExecutor().submit(self.One_Eq)
-            self.AutoEarthqaukeRefresher.setInterval((int(self.RefreshRate.value()) * 59) * 1000)
             self.AutoEarthqaukeRefresher.timeout.connect(self.AutoRefreshing)
-            self.AutoEarthqaukeRefresher.start()
+            self.AutoEarthqaukeRefresher.start(int(self.RefreshRate.value() * 60) * 1000)
 
     def clearListView(self):
         [[self.EqListViewModel.removeRow(i) for i in range(self.EqListViewModel.rowCount())] for _ in range(7)]
