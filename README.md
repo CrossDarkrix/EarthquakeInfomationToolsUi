@@ -1,6 +1,6 @@
 <div align="center">
 	<a href="https://github.com/CrossDarkrix/EarthquakeInfomationToolsUi">
-	<img width="200px" height="200px" alt="ffmpegUpScale" src="https://raw.githubusercontent.com/CrossDarkrix/EarthquakeInfomationToolsUi/main/images/eqinfoicon.png"></a>
+	<img width="200px" height="200px" alt="EqICON" src="https://raw.githubusercontent.com/CrossDarkrix/EarthquakeInfomationToolsUi/main/images/eqinfoicon.png"></a>
 </div>
 
 <h2 align="center">EarthquakeInfomationTools for Multi Platform - 地震情報取得ツール -</h2>
